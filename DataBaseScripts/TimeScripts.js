@@ -1,7 +1,7 @@
 
 class DbTimeScripts {
     async SetEnterTime(client) {
-
+        
     }
 
     async SetExitTime(client) {

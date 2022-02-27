@@ -15,7 +15,7 @@ function GetBirthDateString(date) {
 
 class DbCommands {
     async GetUser(client, user) {
-        const gtUser = await client.query(`SELECT * FROM Users WHERE email = '${user.email}' AND password = '${md5(user.password)}'`)
+        const gtUser = await client.query(`SELECT * FROM users WHERE email = '${user.email}' AND pass = '${user.password}'`)
         return gtUser.rows[0]
     }
 
@@ -25,10 +25,10 @@ class DbCommands {
     }
 
     async AddUser(client, user) {
-        const OfficeId = await client.query(`SELECT * FROM Offices WHERE office_title = '${user.OfficeName}'`)
+        const OfficeId = await client.query(`SELECT * FROM Offices WHERE title = '${user.OfficeName}'`)
         const insertUser = await client.query(`
-                    INSERT INTO Users (email, firstName, lastName, office_id, birthDate, password) VALUES
-                        ('${user.email}', '${user.firstName}', '${OfficeId.rows[0].id}', '${GetBirthDateString(user.birthdate)}', '${md5(user.password)}')
+                    INSERT INTO Users (email, firstname, lastname, user_office_id, birthDate, password) VALUES
+                        ('${user.email}', '${user.firstname}', '${OfficeId.rows[0].id}', '${GetBirthDateString(user.birthdate)}', '${md5(user.password)}')
                         `) 
         return insertUser
     }
@@ -38,11 +38,16 @@ class DbCommands {
 
         if (editUser.rows[0].role_id === 1) {
             // Ошибка ! Админ не может менять роль Админа 
+            return null
         } else {
             const res = await client.query(`UPDATE Users SET role_id = 2`)
             return res
         }
+    }
 
+    async GetAllUserLogs(client, user) {
+        const userLogs = await client.query(`SELECT * FROM logs WHERE user_id = ${user.user_id}`)
+        return userLogs.rows
     }
 }
 
