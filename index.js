@@ -2,17 +2,19 @@ const express = require('express')
 const { Client } = require('pg')
 const cors =  require('cors')
 const bodyParser = require('body-parser')
+const { body } = require('express-validator')
+
 
 const JWTCom = require('./TokenSetup/TokenFunc')
 const DBScripts = require('./DataBaseScripts/dbScripts')
+const TimeScripts = require('./DataBaseScripts/TimeScripts')
 
 const app = express()
 const client = new Client(require('./DataBaseScripts/Config'))
 
 const { PORT } = require('./DevData')
-const e = require('express')
 
-async function start() {
+async function start () {
     
     try {
         client.connect()
@@ -32,22 +34,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/takeUser', (request, response) => {
     const user = JWTCom.DecodeJWT(request.body.token)
+    console.log(user)
     response.json(user)
 })
 
-app.post('/login', async (request, response) => {
+app.post('/login', body('email').isEmail(),async (request, response) => {
     
+    console.log(request.body.email + ' ' + request.body.password)
     const user = await DBScripts.GetUser(client, {
         email: request.body.email, 
         password: request.body.password
     })
-
     if (user) {
-        const token = JWTCom.MakeJWTFromEmailAndPassword(user)
-        response.json({token: `Bearer ${token}`})
+        const token = JWTCom.MakeJWT(user)
+        const lastLog = await DBScripts.GetLastUserLog(client, user)
+        const newLog = await TimeScripts.SetEnterTime(client, user)
 
+        if (newLog) {
+            if (lastLog.logout) {
+                response.json({token: `Bearer ${token}`, isNormalLogout: true})
+            } else {
+                response.json({token: `Bearer ${token}`, isNormalLogout: false, logId: lastLog.log_id})
+            }
+        } else {
+            response.json({data: null, text: 'set-log-error'})
+        }
     } else {
-        response.json({error: 'Error'}) // Пользователь не найден
+        response.json({error: 'error'}) 
     }
 
 })
@@ -80,7 +93,7 @@ app.post('/takeUserPageData', async (request, response) => {
 
     } else {
         response.json({
-            text: 'Cant find logs...',
+            text: 'no logs',
             data: null,
             user: user
         })
@@ -136,8 +149,51 @@ app.post('/ChangeRole', async (request, response) => {
 })
 
 
-app.post('./AddUser', async (request, response) => {
+app.post('/AddUser', async (request, response) => {
     const user = JWTCom.DecodeJWT(request.body.token)
     const addingUser = request.body.addingUser
-    // Доделаю завтра
+    const isUserAdded = DBScripts.AddUser(addingUser)
+    if (isUserAdded) {
+        response.json({isUserAdded:true})
+    } else {
+        response.json({isUserAdded: false})
+    }
+})
+
+app.post('/BanUser', async (request, response) => {
+    const user = JWTCom.DecodeJWT(request.body.token)
+    if (user.user_role_id === 1) {
+        const userToBan = DBScripts.GetUser(request.body.userToBan)
+        if (userToBan.user_role_id === 1) {
+            response.json({isBanned: false, text: 'trying to ban admin'})
+        } else {
+            const isUserBanned = await DBScripts(client, userToBan)
+            if (isUserBanned) {
+                response.json({isBanned: true, text: 'user successfully banned'})
+            } else {
+                response.json({isBanned: false, text: 'ban-error'})
+            }
+        }
+    } else {
+        response.json({isBanned: false, text: 'no admin roots'})
+    }
+})
+
+app.post('/Exit', async (request, response) => {
+    const user = JWTCom.DecodeJWT(request.body.token)
+    const isExitTimeEstablished = TimeScripts.SetExitTime(client, user) 
+    if (isExitTimeEstablished) {
+        response.json({isExitTimeEstablished: true})
+    } else {
+        response.json({isExitTimeEstablished: false, text:'set-exit-time-error'})
+    }
+})
+
+app.post('/SetLogoutReason', async (request, response) => {
+    const isLogReasonSet = await TimeScripts.SetLogoutReason(client, request.body.logObject)
+    if (isLogReasonSet) {
+        response.json({isLogReasonSet: true})
+    } else {
+        response.json({isLogReasonSet: false})
+    }
 })

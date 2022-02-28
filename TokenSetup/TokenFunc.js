@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 class JWTCom{
-    MakeJWTFromEmailAndPassword(user) {
+    MakeJWT(user) {
         return jwt.sign(user, require('./TokenKey'))
     }
     
@@ -11,5 +11,6 @@ class JWTCom{
     }
 }
 
+const a = new JWTCom()
 
 module.exports = new JWTCom()
