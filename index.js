@@ -21,7 +21,7 @@ async function start () {
     } catch (err) {
         console.error(err)
     }
-    app.listen(PORT, () => {
+    app.listen(PORT,  () => {
         console.log(`server is running on port ${PORT}`)
     })
 }
@@ -151,8 +151,11 @@ app.post('/ChangeRole', async (request, response) => {
 
 app.post('/AddUser', async (request, response) => {
     const user = JWTCom.DecodeJWT(request.body.token)
+    if (user.user_role_id != 1) {
+        response.json({isUserAdded:false, text: 'no-admin-roots'})
+    }
     const addingUser = request.body.addingUser
-    const isUserAdded = DBScripts.AddUser(addingUser)
+    const isUserAdded = DBScripts.AddUser(client, addingUser)
     if (isUserAdded) {
         response.json({isUserAdded:true})
     } else {
