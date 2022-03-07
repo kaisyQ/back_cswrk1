@@ -67,7 +67,9 @@ app.post('/login', body('email').isEmail(),async (request, response) => {
 
 
 app.post('/takeUserPageData', async (request, response) => {
-    const user = JWTCom.DecodeJWT(request.body.token)
+    //const user = JWTCom.DecodeJWT(request.body.token)
+    console.log('here')
+    const user = {user_id: 1}
     const userLogs = await DBScripts.GetAllUserLogs(client, user)
 
     const resultUserLogs = []
@@ -77,13 +79,21 @@ app.post('/takeUserPageData', async (request, response) => {
             let login = '**'
             if (userLogs.login) {
                 login = userLogs.login
-            } 
-            resultUserLogs.push({
-                logsDate: userLogs.log_date.split('-').reverse().join('/'),
-                loginTime: userLogs.login,
-                LogoutTime: login,
-                logoutReason: userLogs.logout_reason
-            })
+            }
+            if (userLogs.log_date) {  
+                resultUserLogs.push({
+                    logsDate: userLogs.log_date.split('-').reverse().join('/'),
+                    loginTime: userLogs.login,
+                    LogoutTime: login,
+                    logoutReason: userLogs.logout_reason
+                })
+            } else {
+                resultUserLogs.push({
+                    loginTime: userLogs.login,
+                    LogoutTime: login,
+                    logoutReason: userLogs.logout_reason
+                })
+            }
         }
 
         response.json({
