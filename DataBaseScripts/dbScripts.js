@@ -35,10 +35,10 @@ class DbCommands {
     async EditRole(client, user) {
         try {
             const editUser = await client.query(`SELECT * FROM Users WHERE email = '${user.email}'`);
-            if (editUser.rows[0].role_id === 1) {
+            if (editUser.rows[0].user_role_id === 1) {
                 return null
             } else {
-                const res = await client.query(`UPDATE Users SET role_id = 2`)
+                const res = await client.query(`UPDATE Users SET role_id = 2 WHERE '${user.email}'`)
                 return true
             }
 
@@ -52,6 +52,14 @@ class DbCommands {
         return userLogs.rows
     }
 
+    async GetOfficeTitle(client, officeId) {
+        try {
+            const officeTitle = await client.query(`SELECT * FROM offices WHERE office_id = ${officeId}`)
+            return officeTitle.rows[0].title
+        } catch (error) {
+            return false
+        }
+    }
     async BanDefaultUser(client, user) {
         try {
             const isUserBanned = await client.query(`UPDATE users SET active = 0 WHERE email = '${user.email}';`)

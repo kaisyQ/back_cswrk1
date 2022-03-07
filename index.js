@@ -106,6 +106,17 @@ app.post('/takeAdminPageData', async (request, response) => {
 
     if (allUsers) {
         for (let i = 0; i < allUsers.length; ++i) {
+            const title = await DBScripts.GetOfficeTitle(client, allUsers[i].user_office_id)
+            if (allUsers[i].user_role_id === 1) {
+                allUsers[i].role = 'admin'
+            } else {
+                allUsers[i].role = 'user'
+            }
+            delete allUsers[i].user_role_id
+            delete allUsers[i].user_office_id
+            delete allUsers[i].pass
+            delete allUsers[i].user_id
+            allUsers[i].title = title
             if (user.email === allUsers[i].email) {
                 allUsers.splice(i, 1)
             }
