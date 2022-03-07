@@ -67,9 +67,7 @@ app.post('/login', body('email').isEmail(),async (request, response) => {
 
 
 app.post('/takeUserPageData', async (request, response) => {
-    //const user = JWTCom.DecodeJWT(request.body.token)
-    console.log('here')
-    const user = {user_id: 1}
+    const user = JWTCom.DecodeJWT(request.body.token)
     const userLogs = await DBScripts.GetAllUserLogs(client, user)
 
     const resultUserLogs = []
