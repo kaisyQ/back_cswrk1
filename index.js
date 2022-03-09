@@ -74,25 +74,17 @@ app.post('/takeUserPageData', async (request, response) => {
 
     if (userLogs) {
         for (let i = 0; i < userLogs.length; ++i) {
-            let login = '**'
-            if (userLogs.login) {
-                login = userLogs.login
+            let logout = '**'
+            if (userLogs[i].logout) {
+                logout = userLogs[i].logout
             }
-            if (userLogs.log_date) {  
-                resultUserLogs.push({
-                    logsDate: userLogs.log_date.split('-').reverse().join('/'),
-                    loginTime: userLogs.login,
-                    LogoutTime: login,
-                    logoutReason: userLogs.logout_reason
-                })
-            } else {
-                resultUserLogs.push({
-                    loginTime: userLogs.login,
-                    LogoutTime: login,
-                    logoutReason: userLogs.logout_reason
-                })
-            }
-        }
+            resultUserLogs.push({
+                logsDate: userLogs[i].log_date,
+                loginTime: userLogs[i].login,
+                LogoutTime: logout,
+                logoutReason: userLogs[i].logout_reason
+            })
+        }   
 
         response.json({
             user: user,
@@ -127,6 +119,7 @@ app.post('/takeAdminPageData', async (request, response) => {
             allUsers[i].title = title
             if (user.email === allUsers[i].email) {
                 allUsers.splice(i, 1)
+                i--
             }
         }
         response.json({
@@ -185,19 +178,27 @@ app.post('/AddUser', async (request, response) => {
 app.post('/BanUser', async (request, response) => {
     const user = JWTCom.DecodeJWT(request.body.token)
     if (user.user_role_id === 1) {
-        const userToBan = DBScripts.GetUser(request.body.userToBan)
-        if (userToBan.user_role_id === 1) {
-            response.json({isBanned: false, text: 'trying to ban admin'})
+        const userToBan = DBScripts.BanDefaultUser(client, request.body.userToBan)
+        if (userToBan) {
+            response.json({isBanned: true, text: 'user successfully banned'})
         } else {
-            const isUserBanned = await DBScripts(client, userToBan)
-            if (isUserBanned) {
-                response.json({isBanned: true, text: 'user successfully banned'})
-            } else {
-                response.json({isBanned: false, text: 'ban-error'})
-            }
+            response.json({isBanned: false, text: 'ban-error'})
         }
     } else {
         response.json({isBanned: false, text: 'no admin roots'})
+    }
+})
+app.post('/unBanUser', async (request, response) => {
+    const user = JWTCom.DecodeJWT(request.body.token)
+    if (user.user_role_id === 1) {
+        const isUserUnBanned = await DBScripts.UnBanDefaultUser(client, request.body.userToUnBan)
+        if (isUserUnBanned) {
+            response.json ({isUserUnBanned : true, text: 'OK'})
+        } else {
+            response.json ({isUserUnBanned : false, text: 'err'})
+        }
+    } else {
+        response.json ({isUserUnBanned : false, text: 'err'})
     }
 })
 
