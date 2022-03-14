@@ -220,3 +220,35 @@ app.post('/SetLogoutReason', async (request, response) => {
         response.json({isLogReasonSet: false})
     }
 })
+
+app.post('/GetManageFlightData', async (request, response) => {
+    try {
+        const user = JWTCom.DecodeJWT(request.body.token)
+        const manageFlightData = await DBScripts.GetManageFlightData(client)
+        if (manageFlightData) {
+            response.json({text: 'OK', isManageFlightDataTaken: true, manageFlightData: manageFlightData})
+        } else {
+            response.json({text: 'query error', isManageFlightDataTaken: false})
+        }
+
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isManageFlightDataTaken: false})
+    }
+
+})
+
+app.post('/GetManageAirports', async (request, response) => {
+    try {
+        const user = JWTCom.DecodeJWT(request.body.token)
+        const airports = await DBScripts.GetAllAirports(client)
+        if (airports) {
+            response.json({text: 'OK', isAirportsTaken: true, airports: airports})
+        } else {
+            response.json({text: 'error', isAirportsTaken: false})
+        }
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isAirportsTaken: false})
+    }
+})
