@@ -140,6 +140,7 @@ class DbCommands {
             return resultData
 
         } catch (error) {
+            console.log(error)
             return false
         }
     }
@@ -149,6 +150,29 @@ class DbCommands {
             const airports = (await client.query(`select * from airports`)).rows
             return airports
         } catch (error) {
+            console.log(error)
+            return false
+        }
+    }
+
+    async EditFlightConfirmed(client, objectToChange, n) {
+        try {
+            const cancelFlight = await client.query(`UPDATE shedules SET confirmed = ${n} WHERE shedule_id = ${objectToChange.flightNumber} AND shedule_date = '${objectToChange.date}' AND shedule_time = '${objectToChange.time}'`)
+            return true
+        } catch (error){
+            console.log(error)
+            return false
+        }
+    }
+    async EditFlight(client, objectToEditFlight) {
+        try {
+            const fromAirportId = (await client.query(`select * from airports where iata = '${objectToEditFlight.from}'`)).rows[0].airport_id
+            const ToAirportId = (await client.query(`select * from airports where iata = '${objectToEditFlight.to}'`)).rows[0].airport_id
+            const routeId = (await client.query(`select * from routes where departure_id = ${fromAirportId} and arrival_id = ${ToAirportId}`)).rows[0].route_id
+            const updateFlight = await client.query(`update shedules set shedule_date = '${objectToEditFlight.date}', shedule_time = '${objectToEditFlight.time}', eco_price = ${objectToEditFlight.price} where shedule_route_id = ${routeId} `)
+            return true
+        } catch (error){
+            console.log(error)
             return false
         }
     }

@@ -252,3 +252,34 @@ app.post('/GetManageAirports', async (request, response) => {
         response.json({text: 'error', isAirportsTaken: false})
     }
 })
+
+app.post('/SheduleEdit', async (request, response) => {
+    try {
+        const user = JWTCom.DecodeJWT(request.body.token)
+        console.log(request.body.objectToCancelFlight)
+        const isSheduleEdited = await DBScripts.EditFlightConfirmed(client, request.body.objectToCancelFlight, request.body.num)
+        if (isSheduleEdited) {
+            response.json ({text: 'OK', isSheduleEdited: true})
+        } else {
+            response.json ({text: 'error', isSheduleEdited: false})
+        }
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isSheduleEdited: false})
+    }
+})
+
+app.post('/EditFlight', async (request, response) => {
+    try {
+        const user = JWTCom.DecodeJWT(request.body.token)
+        const editFlight = await DBScripts.EditFlight(client, request.body.objectToEditFlight)
+        if (editFlight) {
+            response.json({text: 'OK', isFlightEdited: true})
+        } else {
+            response.json({text: 'error', isFlightEdited: false})
+        }
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isFlightEdited: false})
+    }
+})
