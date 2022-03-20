@@ -1,5 +1,5 @@
 const md5 = require('md5')
-const { SetLogoutReason } = require('./TimeScripts')
+const jwt = require('jsonwebtoken')
 
 class DbCommands {
     async GetUser(client, user) {
@@ -173,6 +173,33 @@ class DbCommands {
             return true
         } catch (error){
             console.log(error)
+            return false
+        }
+    }
+    async GetAllCountries(client) {
+        try {
+            const countries = (await client.query(`select * from countries`)).rows
+            return countries
+        } catch (error) {
+            return false
+        }
+    }
+    async SaveAnswer(client, data) {
+        try {
+            console.log(data)
+            const UserAnsJWT = jwt.sign(data.user, require('../TokenSetup/AnsTokeyKey'))
+            console.log(UserAnsJWT)
+            const qry = await client.query(`insert into quiz (quiz_token,answer_1, answer_2, answer_3, answer_4) values ('${UserAnsJWT}', ${data.answers[0]}, ${data.answers[1]}, ${data.answers[2]}, ${data.answers[3]})`) 
+            return true
+        } catch (error) {
+            return false
+        }
+    }
+    async GetAllAsnwers(client) {
+        try {
+            const quiz = (await client.query(`select * from quiz`)).rows
+            return quiz
+        } catch (error) {
             return false
         }
     }

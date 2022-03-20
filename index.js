@@ -283,3 +283,46 @@ app.post('/EditFlight', async (request, response) => {
         response.json({text: 'error', isFlightEdited: false})
     }
 })
+
+app.post('/GetCountries', async (request, response) => {
+    try {
+        const user = JWTCom.DecodeJWT(request.body.token)
+        const countries = await DBScripts.GetAllCountries(client)
+        if (countries) {
+            response.json({text: 'OK', isCountriesTaken: true, countries: countries})
+        } else {
+            response.json({text: 'error', isCountriesTaken: false})
+        }
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isCountriesTaken: false})
+    }
+})
+
+app.post('/sendAnswer', async (request, response) => {
+    try {
+        const isUserSaved = await DBScripts.SaveAnswer(client, request.body)
+        if(isUserSaved) {
+            const allAns = await DBScripts.GetAllAsnwers(client)
+            response.json({text: 'OK', isAnswersSaved: true, answers: allAns})
+        } else {
+            response.json({text: 'error', isAnswersSaved: false})
+        }
+    } catch (error) {
+        console.log(error)
+        response.json({text: 'error', isAnswersSaved: false})
+    }
+})
+
+app.get('/getAnswers', async (request, response) => {
+   try{
+    const allAns = await DBScripts.GetAllAsnwers(client)
+    if(allAns) {
+        response.json({text: 'OK', isAnswersTaken: true, answers: allAns})
+    } else {
+        response.json({text: 'error', isAnswersTaken: false})
+    }
+   } catch(error) {
+        response.json({text: 'error', isAnswersTaken: false})
+   }
+})
